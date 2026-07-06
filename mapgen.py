@@ -5,37 +5,45 @@ from PIL import Image
 import yaml
 import os
 import cv2
+import shutil
 
-IMAGE_PATH = 'images/'
+TMP_IMAGE_PATH = 'images/'
 
 def main():
-    config = yaml.safe_load(open("config.yaml"))
-    colours = yaml.safe_load(open("colours.yaml"))
+    os.mkdir(TMP_IMAGE_PATH)
 
-    size_x = config["size"]["x"]
-    size_y = config["size"]["y"]
+    try:
+        config = yaml.safe_load(open("config.yaml"))
+        colours = yaml.safe_load(open("colours.yaml"))
 
-    array = np.zeros((size_y, size_x, 3), dtype=np.uint8) # y rows and x columns, 3 channels for RGB
+        size_x = config["size"]["x"]
+        size_y = config["size"]["y"]
 
-    for x in range(size_x):
-        for y in range(size_y):
-            generate_pixel(config, colours, array, x, y, size_x, size_y)
-        if x % config["freq"] == 0:
-            # Save 
-            new_image = Image.fromarray(array)
-            new_image.save(f"{IMAGE_PATH}{x}.png")
+        array = np.full((size_y, size_x, 3), colours["ocean"], dtype=np.uint8) # y rows and x columns, 3 channels for RGB
 
-    final = Image.fromarray(array)
-    final.save("final.png")
-    
-    generate_video(config)
+        for x in range(size_x):
+            for y in range(size_y):
+                generate_pixel(config, colours, array, x, y, size_x, size_y)
+            if x % config["freq"] == 0:
+                # Save 
+                new_image = Image.fromarray(array)
+                new_image.save(f"{TMP_IMAGE_PATH}{x}.png")
+
+        final = Image.fromarray(array)
+        final.save("final.png")
+        
+        generate_video(config)
+        
+    finally:
+        shutil.rmtree(TMP_IMAGE_PATH)
+
     
 def generate_pixel(config, colours, array, x, y, size_x=None, size_y=None):
     # Just make a nice gradient for now
     array[y, x] = [255*y//size_y, 255*x//size_x,255*(size_y-y)//size_y]
 
 def generate_video(config):
-    image_folder = IMAGE_PATH
+    image_folder = TMP_IMAGE_PATH
     video_name = 'timelapse.avi'
 
     images = [img for img in os.listdir(image_folder) if img.endswith((".jpg", ".jpeg", ".png"))]
