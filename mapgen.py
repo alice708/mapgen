@@ -19,8 +19,7 @@ def main():
 
     for x in range(size_x):
         for y in range(size_y):
-            # Just make a nice gradient for now
-            array[y, x] = [255*x//size_x,255*(size_y-y)//size_y,0] 
+            generate_pixel(config, colours, array, x, y, size_x, size_y)
         if x % config["freq"] == 0:
             # Save 
             new_image = Image.fromarray(array)
@@ -31,7 +30,9 @@ def main():
     
     generate_video(config)
     
-
+def generate_pixel(config, colours, array, x, y, size_x=None, size_y=None):
+    # Just make a nice gradient for now
+    array[y, x] = [255*y//size_y, 255*x//size_x,255*(size_y-y)//size_y]
 
 def generate_video(config):
     image_folder = IMAGE_PATH
